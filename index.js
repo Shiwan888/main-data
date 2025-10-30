@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const snapsave = require("./snapsave-downloader/src/index");
+const snapsave = require("./snapsave-downloader/index");
 
 const app = express();
 app.use(cors()); // ✅ Allow frontend to access API
