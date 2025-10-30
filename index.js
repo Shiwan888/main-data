@@ -1,15 +1,15 @@
 const express = require("express");
-const cors = require("cors"); // CORS enable
+const cors = require("cors");
 const snapsave = require("./snapsave-downloader/src/index");
 
 const app = express();
-app.use(cors());
+app.use(cors()); // ✅ Allow frontend to access API
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Test route
 app.get("/", (req, res) => {
-  res.json({ message: "Hello World!" });
+  res.json({ message: "✅ Instagram Downloader API is running!" });
 });
 
 // Instagram Downloader Route
@@ -21,18 +21,23 @@ app.get("/igdl", async (req, res) => {
       return res.status(400).json({ error: "URL parameter is missing" });
     }
 
-    const result = await snapsave(url);
+    // 🔹 Call Snapsave
+    const downloadedData = await snapsave(url);
+    console.log("Snapsave raw result:", downloadedData);
 
-    console.log("Snapsave raw result:", result);
-
-    // ✅ Send only the data array to frontend
-    res.json(result.data);
+    // 🔹 Wrap response properly so frontend can read it
+    res.json({
+      url: {
+        data: downloadedData.data
+      }
+    });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
+// Start server
 app.listen(port, () => {
   console.log(`✅ Server running at http://localhost:${port}`);
 });
