@@ -1,19 +1,22 @@
 const express = require("express");
 const cors = require("cors");
-const snapsave = require("./snapsave-downloader/index");
+const snapsave = require("./snapsave-downloader/src/index");
 
 const app = express();
 
-// CORS - Allow your frontend domain
+// ✅ CORS - Allow ALL origins (this fixes your issue)
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true
 }));
 
-// Use Render's PORT environment variable
+app.use(express.json());
+
 const port = process.env.PORT || 3000;
 
-// Health check route
+// Health check
 app.get("/", (req, res) => {
   res.json({ 
     status: "ok",
@@ -22,20 +25,18 @@ app.get("/", (req, res) => {
   });
 });
 
-// Instagram Downloader Route
+// Instagram Downloader
 app.get("/igdl", async (req, res) => {
   try {
     const url = req.query.url;
-
     if (!url) {
       return res.status(400).json({ error: "URL parameter is missing" });
     }
-
+    
     console.log("Processing URL:", url);
     const result = await snapsave(url);
-    console.log("Snapsave result received");
-
-    // Send only the data array to frontend
+    console.log("Success! Items:", result.data?.length || 0);
+    
     res.json(result.data);
   } catch (err) {
     console.error("Error:", err.message);
@@ -46,8 +47,7 @@ app.get("/igdl", async (req, res) => {
   }
 });
 
-// Start server
 app.listen(port, '0.0.0.0', () => {
   console.log(`✅ Server running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`CORS enabled for all origins`);
 });
